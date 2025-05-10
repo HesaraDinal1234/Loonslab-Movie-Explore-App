@@ -11,9 +11,28 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);   
   const [theme, setTheme] = useState('dark');
   const [genres, setGenres] = useState([]);
+  
+  // Filter states
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedRating, setSelectedRating] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();      
+  
+  const navigate = useNavigate();
+  
+  // Generate years for the year filter (current year down to 1980)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
+  
+  // Rating options
+  const ratingOptions = [
+    { value: '9', label: '9+ ★' },
+    { value: '8', label: '8+ ★' },
+    { value: '7', label: '7+ ★' },
+    { value: '6', label: '6+ ★' },
+    { value: '5', label: '5+ ★' },
+    { value: '0', label: 'All Ratings' }
+  ];      
 
   useEffect(() => {     
     const loadInitialData = async () => {       
@@ -51,16 +70,16 @@ function Dashboard() {
     
     try {       
       if (query.trim() === '') {         
-        // If search is cleared, show filtered trending movies based on genre
-        filterMoviesByGenre(trendingMovies, selectedGenre);
+        // If search is cleared, show filtered trending movies
+        applyAllFilters(trendingMovies);
         return;       
       }              
       
       setLoading(true);       
       const data = await fetchMovies(query);       
       if (data && data.results) {         
-        // Apply genre filter to search results if a genre is selected
-        filterMoviesByGenre(data.results, selectedGenre);
+        // Apply all filters to search results
+        applyAllFilters(data.results);
       } else {         
         setMovies([]);       
       }     
@@ -70,37 +89,89 @@ function Dashboard() {
     } finally {       
       setLoading(false);     
     }
-  }, [trendingMovies, selectedGenre]);
+  }, [trendingMovies, selectedGenre, selectedYear, selectedRating]);
   
-  const filterMoviesByGenre = useCallback((movieList, genreId) => {
-    if (!genreId) {
-      // If no genre is selected, show all movies
-      setMovies(movieList);
-      return;
+  // Apply all filters (genre, year, rating) to a list of movies
+  const applyAllFilters = useCallback((movieList) => {
+    let filteredMovies = [...movieList];
+    
+    // Filter by genre if selected
+    if (selectedGenre) {
+      filteredMovies = filteredMovies.filter(movie => 
+        movie.genre_ids && movie.genre_ids.includes(parseInt(selectedGenre))
+      );
     }
     
-    // Filter movies by selected genre
-    const filteredMovies = movieList.filter(movie => 
-      movie.genre_ids && movie.genre_ids.includes(parseInt(genreId))
-    );
+    // Filter by year if selected
+    if (selectedYear) {
+      const year = parseInt(selectedYear);
+      filteredMovies = filteredMovies.filter(movie => {
+        // Extract year from release_date (format: YYYY-MM-DD)
+        const movieYear = movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : null;
+        return movieYear === year;
+      });
+    }
+    
+    // Filter by rating if selected
+    if (selectedRating && selectedRating !== '0') {
+      const minRating = parseFloat(selectedRating);
+      filteredMovies = filteredMovies.filter(movie => 
+        movie.vote_average >= minRating
+      );
+    }
     
     setMovies(filteredMovies);
-  }, []);
+  }, [selectedGenre, selectedYear, selectedRating]);
   
-  // Update genre and refilter results
+  // Handle filter changes
   const handleGenreChange = useCallback((e) => {
     const genreId = e.target.value;
     setSelectedGenre(genreId);
     
-    // If there's an active search, refilter those results
+    // Re-apply all filters with the new genre value
     if (searchQuery.trim() !== '') {
-      // Re-run the search with the new genre filter
       handleSearch(searchQuery);
     } else {
-      // Otherwise filter the trending movies
-      filterMoviesByGenre(trendingMovies, genreId);
+      applyAllFilters(trendingMovies);
     }
-  }, [searchQuery, trendingMovies, handleSearch, filterMoviesByGenre]);
+  }, [searchQuery, trendingMovies, handleSearch, applyAllFilters]);
+  
+  const handleYearChange = useCallback((e) => {
+    const year = e.target.value;
+    setSelectedYear(year);
+    
+    // Re-apply all filters with the new year value
+    if (searchQuery.trim() !== '') {
+      handleSearch(searchQuery);
+    } else {
+      applyAllFilters(trendingMovies);
+    }
+  }, [searchQuery, trendingMovies, handleSearch, applyAllFilters]);
+  
+  const handleRatingChange = useCallback((e) => {
+    const rating = e.target.value;
+    setSelectedRating(rating);
+    
+    // Re-apply all filters with the new rating value
+    if (searchQuery.trim() !== '') {
+      handleSearch(searchQuery);
+    } else {
+      applyAllFilters(trendingMovies);
+    }
+  }, [searchQuery, trendingMovies, handleSearch, applyAllFilters]);
+
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSelectedGenre('');
+    setSelectedYear('');
+    setSelectedRating('0');
+    
+    if (searchQuery.trim() !== '') {
+      handleSearch(searchQuery);
+    } else {
+      setMovies(trendingMovies);
+    }
+  };
 
   const toggleTheme = () => {     
     setTheme(theme === 'dark' ? 'light' : 'dark');   
@@ -115,21 +186,70 @@ function Dashboard() {
         <SearchBar onSearch={handleSearch} />
       </header>
       
-      {/* Genre Filter Dropdown */}
-      <div className="genre-filter">
-        <select 
-          value={selectedGenre} 
-          onChange={handleGenreChange}
-          className="genre-select"
+      {/* Filters Section */}
+      <div className="filters-container">
+        {/* Genre Filter */}
+        <div className="filter">
+          <label htmlFor="genre-select">Genre:</label>
+          <select 
+            id="genre-select"
+            value={selectedGenre} 
+            onChange={handleGenreChange}
+            className="filter-select"
+          >
+            <option value="">All Genres</option>
+            {genres.map(genre => (
+              <option key={genre.id} value={genre.id}>
+                {genre.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Year Filter */}
+        <div className="filter">
+          <label htmlFor="year-select">Year:</label>
+          <select 
+            id="year-select"
+            value={selectedYear} 
+            onChange={handleYearChange}
+            className="filter-select"
+          >
+            <option value="">All Years</option>
+            {years.map(year => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Rating Filter */}
+        <div className="filter">
+          <label htmlFor="rating-select">Rating:</label>
+          <select 
+            id="rating-select"
+            value={selectedRating} 
+            onChange={handleRatingChange}
+            className="filter-select"
+          >
+            {ratingOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Reset Filters Button */}
+        <button 
+          onClick={handleResetFilters}
+          className="reset-filters-btn"
+          disabled={!selectedGenre && !selectedYear && selectedRating === '0'}
         >
-          <option value="">All Genres</option>
-          {genres.map(genre => (
-            <option key={genre.id} value={genre.id}>
-              {genre.name}
-            </option>
-          ))}
-        </select>
-      </div>              
+          Reset Filters
+        </button>
+      </div>
       
       {loading ? (         
         <div className="loading">Searching movies...</div>       
@@ -153,9 +273,8 @@ function Dashboard() {
           </section>               
           <section className="movie-grid">
             <h2>
-              {selectedGenre 
-                ? `${genres.find(g => g.id === parseInt(selectedGenre))?.name || ''} Movies` 
-                : searchQuery ? `Results for "${searchQuery}"` : 'All Movies'}
+              {/* Dynamic title based on active filters */}
+              {getMovieGridTitle(searchQuery, selectedGenre, selectedYear, selectedRating, genres)}
             </h2>
             {movies && movies.length > 0 ? (               
               movies.map((movie) => (                 
@@ -167,18 +286,45 @@ function Dashboard() {
               ))             
             ) : (               
               <div className="no-results">
-                {selectedGenre 
-                  ? `No ${genres.find(g => g.id === parseInt(selectedGenre))?.name || ''} movies found` 
-                  : 'No movies found'}
+                No movies found with the current filters
               </div>             
             )}           
           </section>                      
-          
-         
         </>       
       )}     
     </div>   
   ); 
-}  
+}
+
+// Helper function to generate the movie grid title based on active filters
+function getMovieGridTitle(searchQuery, selectedGenre, selectedYear, selectedRating, genres) {
+  let title = '';
+  
+  // Add rating description if applicable
+  if (selectedRating && selectedRating !== '0') {
+    title += `${selectedRating}+ ★ `;
+  }
+  
+  // Add genre description if applicable
+  if (selectedGenre) {
+    const genreName = genres.find(g => g.id === parseInt(selectedGenre))?.name || '';
+    title += `${genreName} `;
+  }
+  
+  // Add basic title
+  title += 'Movies';
+  
+  // Add year if applicable
+  if (selectedYear) {
+    title += ` from ${selectedYear}`;
+  }
+  
+  // If there's a search query, show that instead
+  if (searchQuery) {
+    return `Results for "${searchQuery}"${selectedGenre || selectedYear || (selectedRating && selectedRating !== '0') ? ' with filters' : ''}`;
+  }
+  
+  return title;
+}
 
 export default Dashboard;
