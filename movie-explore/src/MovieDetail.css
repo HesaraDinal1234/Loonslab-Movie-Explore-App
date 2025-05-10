@@ -1,0 +1,72 @@
+.movie-detail {
+  padding: 20px;
+  color: white;
+}
+
+.back-button {
+  background: #3a86ff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.detail-header {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.detail-header img {
+  width: 300px;
+  border-radius: 8px;
+}
+
+.header-info h1 {
+  margin: 0 0 10px;
+}
+
+.meta {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.genres {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.genres span {
+  background: #3a86ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.trailer iframe {
+  width: 100%;
+  height: 500px;
+  margin: 20px 0;
+}
+
+.cast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.cast-member img {
+  width: 100%;
+  border-radius: 8px;
+  aspect-ratio: 2/3;
+}
+
+.character {
+  color: #aaa;
+  font-size: 14px;
+}

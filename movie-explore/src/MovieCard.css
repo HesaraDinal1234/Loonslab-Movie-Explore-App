@@ -1,0 +1,35 @@
+.movie-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.movie-card:hover {
+  transform: scale(1.03);
+}
+
+.movie-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2/3;
+}
+
+.movie-info {
+  padding: 12px;
+  background: #1a1a2e;
+  color: white;
+}
+
+.movie-info h3 {
+  margin: 0 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  color: #a0a0a0;
+}

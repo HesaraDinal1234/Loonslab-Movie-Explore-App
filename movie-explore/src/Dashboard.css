@@ -1,0 +1,35 @@
+.dashboard {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.dashboard.dark {
+  background: #0f0f1a;
+  color: white;
+}
+
+.dashboard.light {
+  background: #f5f7fa;
+  color: #1a1a2e;
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.trending-section h2 {
+  margin: 40px 0 20px;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
