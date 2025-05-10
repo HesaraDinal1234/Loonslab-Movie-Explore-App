@@ -2,7 +2,7 @@
 
 A modern React application for browsing and searching movies using The Movie Database (TMDB) API.
 
-![Movie Explorer App](/api/placeholder/600/300)
+![Movie Explorer App](https://movieversefilm.netlify.app/)
 
 ## Table of Contents
 
