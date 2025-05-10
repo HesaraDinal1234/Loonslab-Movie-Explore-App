@@ -1,41 +1,64 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { auth, db } from "./firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore"; // Firestore functions
-import "./Login.css";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import './Login.css';
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
+
+    // Basic validation
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // 1. Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      // Firebase Authentication sign-in
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // 2. Fetch additional user data from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        alert(`Welcome back, ${userData.username || user.email}!`);
-        navigate("/dashboard");
-      } else {
-        throw new Error("User data not found");
-      }
+      
+      console.log('Successfully signed in:', user.email);
+      navigate('/dashboard'); // Redirect to dashboard after login
+      
     } catch (error) {
-      setError(error.message);
+      // Enhanced error handling
+      let errorMessage = 'Login failed. Please try again.';
+      
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = 'Invalid email address';
+          break;
+        case 'auth/user-disabled':
+          errorMessage = 'This account has been disabled';
+          break;
+        case 'auth/user-not-found':
+          errorMessage = 'No account found with this email';
+          break;
+        case 'auth/wrong-password':
+          errorMessage = 'Incorrect password';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your internet connection';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many attempts. Account temporarily locked';
+          break;
+        default:
+          console.error('Login error:', error);
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -46,11 +69,15 @@ function Login() {
       <div className="login-card">
         <div className="login-header">
           <div className="app-logo">MovieVerse</div>
-          <h2>Discover Your Next Favorite Film</h2>
-          <p>Sign in to access personalized recommendations</p>
+          <h2>Welcome Back</h2>
+          <p>Sign in to continue</p>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message">
+            <i className="fas fa-exclamation-circle"></i> {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
@@ -83,19 +110,23 @@ function Login() {
             </div>
           </div>
 
+          <div className="forgot-password">
+            <Link to="/forgot-password">Forgot password?</Link>
+          </div>
+
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? (
               <>
                 <i className="fas fa-spinner fa-spin"></i> Signing in...
               </>
             ) : (
-              "Explore Movies"
+              'Sign In'
             )}
           </button>
         </form>
 
         <div className="signup-link">
-          New to MovieVerse? <Link to="/register">Create an account</Link>
+          Don't have an account? <Link to="/register">Sign up</Link>
         </div>
       </div>
     </div>
