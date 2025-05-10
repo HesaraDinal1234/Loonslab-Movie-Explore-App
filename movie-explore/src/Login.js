@@ -1,29 +1,44 @@
-import React, { useState } from 'react';
-import './Login.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { auth, db } from "./firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore"; // Firestore functions
+import "./Login.css";
 
 function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    if (!username || !password) {
-      setError('Please enter both username and password');
+
+    try {
+      // 1. Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // 2. Fetch additional user data from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        alert(`Welcome back, ${userData.username || user.email}!`);
+        navigate("/dashboard");
+      } else {
+        throw new Error("User data not found");
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
       setIsLoading(false);
-      return;
     }
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login with:', { username, password });
-      setIsLoading(false);
-      alert(`Welcome to MovieVerse, ${username}!`);
-    }, 1500);
   };
 
   return (
@@ -35,23 +50,20 @@ function Login() {
           <p>Sign in to access personalized recommendations</p>
         </div>
 
-        {error && (
-          <div className="error-message">
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <div className="input-field">
-              <i className="icon fas fa-user"></i>
+              <i className="icon fas fa-envelope"></i>
               <input
-                type="text"
-                id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -61,21 +73,14 @@ function Login() {
             <div className="input-field">
               <i className="icon fas fa-lock"></i>
               <input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 id="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
-              <i 
-                className={`icon toggle-password fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
-                onClick={() => setShowPassword(!showPassword)}
-              ></i>
             </div>
-          </div>
-
-          <div className="forgot-password">
-            <a href="#">Forgot password?</a>
           </div>
 
           <button type="submit" className="login-button" disabled={isLoading}>
@@ -84,13 +89,13 @@ function Login() {
                 <i className="fas fa-spinner fa-spin"></i> Signing in...
               </>
             ) : (
-              'Explore Movies'
+              "Explore Movies"
             )}
           </button>
         </form>
 
         <div className="signup-link">
-          New to MovieVerse? <a href="#">Create an account</a>
+          New to MovieVerse? <Link to="/register">Create an account</Link>
         </div>
       </div>
     </div>
