@@ -134,7 +134,23 @@ function Dashboard() {
       {loading ? (         
         <div className="loading">Searching movies...</div>       
       ) : (         
-        <>           
+        <>     
+         <section className="trending-section">             
+            <h2>Trending This Week</h2>             
+            <div className="trending-movies">               
+              {trendingMovies && trendingMovies.length > 0 ? (                 
+                trendingMovies.slice(0, 5).map((movie) => (                   
+                  <MovieCard                     
+                    key={movie.id}                     
+                    movie={movie}                     
+                    onClick={() => navigate(`/movie/${movie.id}`)}                   
+                  />                 
+                ))               
+              ) : (                 
+                <div className="no-results">No trending movies available</div>               
+              )}             
+            </div>           
+          </section>               
           <section className="movie-grid">
             <h2>
               {selectedGenre 
@@ -158,22 +174,7 @@ function Dashboard() {
             )}           
           </section>                      
           
-          <section className="trending-section">             
-            <h2>Trending This Week</h2>             
-            <div className="trending-movies">               
-              {trendingMovies && trendingMovies.length > 0 ? (                 
-                trendingMovies.slice(0, 5).map((movie) => (                   
-                  <MovieCard                     
-                    key={movie.id}                     
-                    movie={movie}                     
-                    onClick={() => navigate(`/movie/${movie.id}`)}                   
-                  />                 
-                ))               
-              ) : (                 
-                <div className="no-results">No trending movies available</div>               
-              )}             
-            </div>           
-          </section>         
+         
         </>       
       )}     
     </div>   
