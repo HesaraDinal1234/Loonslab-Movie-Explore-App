@@ -3,6 +3,8 @@ import Login from './Login';
 import Register from './Register';
 import Dashboard from './Dashboard';
 import MovieDetail from './MovieDetail';
+import { MovieProvider } from './MovieContext';
+
 import './App.css';
 
 function App() {
@@ -14,6 +16,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/movie/:id" element={<MovieDetail />} />
+                    <Route path="/movie/:id" element={<MovieDetail />} />
+
       </Routes>
     </Router>
   );

@@ -1,25 +1,48 @@
-import React, { useState } from 'react';
-import './SearchBar.css';
+import React, { useState, useEffect, useRef } from 'react';
 
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('');
-
+  const searchTimeoutRef = useRef(null);
+  
+  // Debounce search to prevent excessive API calls
+  useEffect(() => {
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set new timeout for search
+    searchTimeoutRef.current = setTimeout(() => {
+      // Only search if query is not empty or has been cleared
+      onSearch(query);
+    }, 500); // 500ms delay
+    
+    // Cleanup on unmount or before next effect run
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [query, onSearch]);
+  
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+  };
+  
+  // Prevent form submission (which would cause page reload)
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSearch(query);
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="search-bar">
+    <form className="search-bar" onSubmit={handleSubmit}>
       <input
         type="text"
-        placeholder="Search movies..."
+        placeholder="Search for movies..."
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={handleChange}
+        aria-label="Search movies"
       />
-      <button type="submit">
-        <i className="fas fa-search"></i>
-      </button>
     </form>
   );
 }
