@@ -1,4 +1,4 @@
-const API_KEY = 'YOUR_TMDB_API_KEY'; // Get from https://www.themoviedb.org
+const API_KEY = 'fcf2734c44f7b8425d1a50feaef30357'; // Get from https://www.themoviedb.org
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 export const fetchMovies = async (query) => {
