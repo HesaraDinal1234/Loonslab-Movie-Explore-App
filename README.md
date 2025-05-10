@@ -57,12 +57,7 @@ A modern React application for browsing and searching movies using The Movie Dat
    npm install
    ```
 
-3. Create a `.env` file in the project root and add your TMDB API key:
-   ```
-   REACT_APP_TMDB_API_KEY=your_api_key_here
-   ```
-
-4. Start the development server:
+3. Start the development server:
    ```bash
    npm start
    ```
